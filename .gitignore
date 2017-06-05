@@ -1,7 +1,7 @@
 *.html
 *~
-.wget
-.json
+*.wget
+*.json
 *.o
 .DS_Store
 *.swp
