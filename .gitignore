@@ -1,5 +1,7 @@
 *.html
 *~
+.wget
+.json
 *.o
 .DS_Store
 *.swp
