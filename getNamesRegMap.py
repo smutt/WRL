@@ -9,7 +9,7 @@ numRegs = 10
 
 # Returns string between passed strings
 def between(s, s1, s2):
-  return s.split(s1)[1].split(s2)[0]
+  return s.split(s1)[1].split(s2)[0].strip()
 
 cfgFile = open("config.json", "r")
 cfg = json.load(cfgFile)
@@ -34,17 +34,29 @@ regs = []
 for det in details:
   reg = {}
   reg['id'] = between(det['href'], 'wsa_details_clean/', '.html')
-
-  reg['name'] = ''
-  reg['whois_fqdn'] = ''
-  reg['whois_ip'] = ''
-  reg['domains'] = []
   soup = BeautifulSoup(urllib2.urlopen(cfg['url_base'] + det['href']).read(), 'html.parser')
   
-  # Need code here to fill values
+  pre = soup.find('pre')
+  reg['date'] = between(pre.text, "\nDate:", "\n").strip()
+  reg['name'] = between(pre.text, "\nIANAID,name:", "\n").split(reg['id'])[1].strip()
+  whois = between(pre.text, "\nWhoisServer:", ";\n").strip()
+  reg['whois_fqdn'] = whois.split(" ")[0].strip()
+  reg['whois_ip'] = between(pre.text, "(", ")").strip()
 
+  reg['domains'] = []
   for ll in soup.find_all('a'):
     if ll['href'].count('/cgi/whois?d=') == 1:
       reg['domains'].append(ll['href'].split('whois?d=')[1])
   regs.append(reg)
-  
+
+
+#for reg in regs:
+#  print "\n"
+#  print "IANA ID:" + reg['id']
+#  print "date:" + reg['date']
+#  print "name:" + reg['name']
+#  print "whois_fqdn:" + reg['whois_fqdn']
+#  print "whois_ip:" + reg['whois_ip']
+#  print "\nDOMAINS:"
+#  for dom in reg['domains']:
+#    print dom
