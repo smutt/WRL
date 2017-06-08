@@ -8,6 +8,8 @@
 tmp/
 temp/
 test/
+zonefiles/
+zonefiles
 *.pyc
 .git/*
 *.log
