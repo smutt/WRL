@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/usr/bin/python
 
 import os
 import sys
@@ -39,31 +39,37 @@ for zf in zFiles:
 
   dbg("after name split")
 
-  tld['rrs'] = []
+  rrs = []
   for line in lines:
     rr = line.split("\t")
-    tld['rrs'].append(rr)
+    rrs.append(rr)
 
   dbg("after rr split")
 
-  tld['ns'] = []
-  for rr in tld['rrs']:
+  ns = []
+  for rr in rrs:
     if rr[3].lower() == 'ns':
-      tld['ns'].append(rr[0].split(".")[0])
+      ns.append(rr[0].split(".")[0])
 
   dbg("after counting NS records")
 
-  if len(tld['ns']) < numTestDomains:
+  if len(ns) < numTestDomains:
     continue
+  else:
+    tld['size'] = len(ns)
 
-  tld['domains'] = random.sample(tld['ns'], numTestDomains)
+  tld['domains'] = random.sample(ns, numTestDomains)
   for d in tld['domains']:
     dbg(d + "." + tld['name'])
 
-  dbg(tld['name'] + ": " + str(len(tld['ns'])))
+  dbg(tld['name'] + ": " + str(tld['size']))
   tlds.append(tld)
 
-tlds.sort(key=lambda tld: len(tld['ns']), reverse=True)
+tlds.sort(key=lambda tld: tld['size'], reverse=True)
 
-for tld in tlds:
-  print  tld['name'] + " " + str(len(tld['ns']))
+for ii in xrange(numTopTLDs):
+  s = str(tlds[ii]['size']) + ','
+  s += tlds[ii]['name'] + ','
+  for dom in tlds[ii]['domains']:
+    s += dom + ','
+  print s.strip(',')
