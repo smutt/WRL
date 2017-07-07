@@ -63,11 +63,9 @@ for det in details:
 #  for dom in reg['domains']:
 #    print dom
 
-# CSV = name, whois_fqdn, whois_ip, domain[0], domain[1], ...
+# CSV = whois_fqdn, domain[0], domain[1], ...
 for reg in regs:
-  s = reg['name'].replace(',', '') + ','
-  s += reg['whois_fqdn'] + ','
-  s += reg['whois_ip'] + ','
+  s = reg['whois_fqdn'] + ','
   for ii in xrange(min(len(reg['domains']), numDomains)):
     s += reg['domains'][ii] + ','
   print s.strip(',')
