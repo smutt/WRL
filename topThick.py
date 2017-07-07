@@ -3,10 +3,12 @@
 import os
 import sys
 import random
+import dns.resolver
 
 numTestDomains = 10
 numTopTLDs = 10
 ignoreDomains = ['com', 'net', 'jobs', 'cat', 'mil', 'edu', 'gov', 'int', 'arpa']
+serverZone = '.ws.sp.am' # DNS Zone containing CNAME records pointing to whois FQDNs
 
 def dbg(s):
 #  print s
@@ -68,8 +70,18 @@ for zf in zFiles:
 tlds.sort(key=lambda tld: tld['size'], reverse=True)
 
 for ii in xrange(numTopTLDs):
-  s = str(tlds[ii]['size']) + ','
-  s += tlds[ii]['name'] + ','
+  # Find FQDN of whois server 
+  d = dns.resolver.Resolver()
+  try:
+    resp = d.query(tlds[ii]['name'] + serverZone, 'CNAME')
+    if len(resp.rrset) < 1:
+      whois = 'UNKNOWN'
+    else:
+      whois = str(resp.rrset[0]).strip('.')
+  except:
+    whois = 'UNKNOWN'
+
+  s = whois + ','
   for dom in tlds[ii]['domains']:
-    s += dom + ','
+    s += dom + '.' + tlds[ii]['name'] + ','
   print s.strip(',')

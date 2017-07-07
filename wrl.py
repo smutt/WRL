@@ -34,7 +34,7 @@ class wrlThr(threading.Thread):
     self.cnt = min(cnt, len(domains))
     self.reps = 0
 
-    dbgLog("Starting thread " + type(self).__name__ + '_' + self.server)
+    dbg("Starting thread " + type(self).__name__ + '_' + self.server)
     threading.Thread.__init__(self, name=type(self).__name__ + '_' + self.server)
 
     
@@ -46,11 +46,11 @@ class wrlThr(threading.Thread):
     try:
       data = whois(server, domains[cnt])
       if len(data) > 0: # This will likely need to get fancier
-        dbgLog("Data returned " + logStr)
+        dbg("Data returned " + logStr)
     except TimeoutExpired:
-      dbgLog("Timeout expired " + logStr)
+      dbg("Timeout expired " + logStr)
     except as e:
-      dbgLog("Error " + e.strerror + " " + logStr)
+      dbg("Error " + e.strerror + " " + logStr)
       raise
     finally:
       reps += 1
@@ -66,7 +66,7 @@ def whois(server, domain):
   s = WHOIS_BINARY + ' -h ' + server + ' ' + domain
   return subp.check_output(s.split(), timeout=TIMEOUT).strip()
 
-def dbgLog(s):
+def dbg(s):
   pass
 
 
