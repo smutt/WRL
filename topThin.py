@@ -6,6 +6,7 @@ import urllib2
 from bs4 import BeautifulSoup
 
 numRegs = 10
+numDomains = 10
 
 # Returns string between passed strings
 def between(s, s1, s2):
@@ -50,6 +51,7 @@ for det in details:
   regs.append(reg)
 
 
+# Just for debugging
 #for reg in regs:
 #  print "\n"
 #  print "IANA ID:" + reg['id']
@@ -60,3 +62,12 @@ for det in details:
 #  print "\nDOMAINS:"
 #  for dom in reg['domains']:
 #    print dom
+
+# CSV = name, whois_fqdn, whois_ip, domain[0], domain[1], ...
+for reg in regs:
+  s = reg['name'].replace(',', '') + ','
+  s += reg['whois_fqdn'] + ','
+  s += reg['whois_ip'] + ','
+  for ii in xrange(min(len(reg['domains']), numDomains)):
+    s += reg['domains'][ii] + ','
+  print s.strip(',')
