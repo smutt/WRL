@@ -7,7 +7,7 @@ import time
 import signal
 import dns.resolver
 import threading
-import subprocess as subp
+import subprocess
 import re
 
 
@@ -18,14 +18,15 @@ import re
 WHOIS_BINARY = '/bin/whois'
 TIMEOUT = 5 # How many seconds we wait for whois response before registering failure
 #TESTS = [['case-1',1,1], ['case-2',1800,12], ['case-3',900,12], ['case-4',15,240]] # Our test cases as ordered tuples of [test_case, delay, count]
-TESTS = [['case-0',1,1], ['case-1',60,10], ['case-2',9,12], ['case-3',15,15]] # Our test cases as ordered tuples of [test_case, delay, count]
+TESTS = [['case-0',1,1], ['case-1',2,9], ['case-2',4,5], ['case-3',8,2]] # Our test cases as ordered tuples of [test_case, delay, count]
+DEBUG='wrl.dbg'
 
 
 ###########
 # CLASSES #
 ###########
 
-# Chief testing thread
+# Testing thread
 # server = whois server FQDN
 # domains = list of domains to test
 # case = name of test case
@@ -42,7 +43,7 @@ class wrlThr(threading.Thread):
     self.cnt = cnt
     self.reps = 0
 
-    #dbg("Starting thread " + type(self).__name__ + '_' + self.desc)
+    #out("Starting thread " + type(self).__name__ + '_' + self.desc)
     threading.Thread.__init__(self, name=type(self).__name__ + '_' + self.desc)
 
   def run(self):
@@ -51,13 +52,15 @@ class wrlThr(threading.Thread):
     logStr = self.server + " " + domain + " " + self.case + "." + str(self.reps)
     try:
        if test(whois(self.server, domain)):
-         dbg("Pass " + logStr)
+         out("Pass " + logStr)
        else:
-         dbg("Fail " + logStr)
-    except TimeoutExpired:
-      dbg("Fail_timeout " + logStr)
-    except E as e:
-      dbg("Fail_error " + e.strerror + " " + logStr)
+         out("Fail " + logStr)
+    except subprocess.TimeoutExpired:
+      out("Fail_timeout " + logStr)
+    except subprocess.CalledProcessError:
+      out("Fail_process " + logStr)
+    except:
+      out("Fail_general " + logStr)
       raise
     finally:
       self.reps += 1
@@ -65,7 +68,7 @@ class wrlThr(threading.Thread):
         t = threading.Timer(self.delay, self.run)
         t.start()
 
-        
+
 ####################
 # GLOBAL FUNCTIONS #
 ####################
@@ -73,35 +76,43 @@ class wrlThr(threading.Thread):
 # Call whois binary and returns output
 def whois(server, domain):
   s = WHOIS_BINARY + ' -h ' + server + ' ' + domain
-#  return subp.check_output(s.split(), timeout=TIMEOUT).strip()
-  return "THIS IS TEST"
+  return str(subprocess.check_output(s.split(), timeout=TIMEOUT))
+ # return "THIS IS TEST\n"
 
 
-def dbg(s):
+# Output a timestamped string
+def out(s):
   dt = datetime.datetime.now()
   ts = dt.strftime("%H:%M:%S.%f")
   print(ts + " " + str(s))
 
 
+# Dump debugging info to file if DEBUG is set
+def dbg(s):
+  if DEBUG:
+    df.write("\n\n" + str(s))
+
+
 # Test if we are happy with returned results
 # Takes a string, returns boolean
 def test(s):
-  if len(s) > 0: # This will likely need to get fancier
-    return True
-  else:
-    return False
+  dbg(s)
+  if len(s) > 0:
+    if 'Registry Expiry Date:' in s:
+      return True
+  return False
 
 
-# Prints error, then usage and exits
+# Prints error and usage then exits
 def usage(s):
   print(s)
   print("wrl.py CSV")
   exit(0)
 
 
-# Die gracefulle
+# Die gracefully
 def euthanize(signal, frame):
-  print("SIG " + str(signal) + " caught, exiting")
+  print(str(signal) + " exiting")
 
   # Kill all timer threads
   for thr in threading.enumerate():
@@ -111,7 +122,22 @@ def euthanize(signal, frame):
       except:
         pass
 
+  # Close debug file if opened
+  if DEBUG:
+    global df
+    df.close()
+
   sys.exit(0)
+
+
+# Check every 5 seconds to see if all threads dead
+# When they're all dead euthanize
+def hangout():
+  if threading.active_count() > 2:
+    t = threading.Timer(5, hangout)
+    t.start()
+  else:
+    euthanize('END', None)
 
 
 ###################
@@ -126,6 +152,9 @@ signal.signal(signal.SIGALRM, euthanize)
 signal.signal(signal.SIGSEGV, euthanize)
 signal.signal(signal.SIGHUP, euthanize)
 
+if DEBUG:
+  df = open(DEBUG, 'w', 1)
+
 if(len(sys.argv) < 2):
   usage("Too few arguments")
 elif(len(sys.argv) > 2):
@@ -137,7 +166,9 @@ else:
       if len(line) > 0:
         lines.append(line.strip('\n').split(','))
   f.closed
-  
+
   for T in TESTS:
     for l in lines:
      wrlThr(l[0], l[1:], T[0], T[1], T[2]).start()
+
+  hangout()
