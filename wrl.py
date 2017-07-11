@@ -1,14 +1,11 @@
 #!/usr/bin/python3
 
 import sys
-import os
 import datetime
-import time
 import signal
 import dns.resolver
 import threading
 import subprocess
-import re
 
 
 #############
