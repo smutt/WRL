@@ -21,3 +21,4 @@ zonefiles
 *.tgz
 *.zip
 *.txt
+*.dbg
