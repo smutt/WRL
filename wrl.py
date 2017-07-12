@@ -14,10 +14,10 @@ import subprocess
 
 WHOIS_BINARY = '/bin/whois'
 TIMEOUT = 5 # How many seconds we wait for whois response before registering failure
-#TESTS = [['case-1',1,1], ['case-2',1800,12], ['case-3',900,12], ['case-4',15,240]] # Our test cases as ordered tuples of [test_case, delay, count]
+#TESTS = [['case-0',1,1], ['case-1',1800,12], ['case-2',900,12], ['case-3',15,240]] # Our test cases as ordered tuples of [test_case, delay, count]
 TESTS = [['case-0',1,1], ['case-1',2,9], ['case-2',4,5], ['case-3',8,2]] # Our test cases as ordered tuples of [test_case, delay, count]
-DEBUG='wrl.dbg'
-
+#DEBUG='wrl.dbg'
+DEBUG=False
 
 ###########
 # CLASSES #
@@ -74,7 +74,7 @@ class wrlThr(threading.Thread):
 def whois(server, domain):
   s = WHOIS_BINARY + ' -h ' + server + ' ' + domain
   return str(subprocess.check_output(s.split(), timeout=TIMEOUT))
- # return "THIS IS TEST\n"
+#  return "Test String Registry Expiry Date:"
 
 
 # Output a timestamped string
