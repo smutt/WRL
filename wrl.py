@@ -12,12 +12,15 @@ import subprocess
 # CONSTANTS #
 #############
 
+
+DYING = False # Set to True when a kill signal has been received
 WHOIS_BINARY = '/bin/whois'
-TIMEOUT = 5 # How many seconds we wait for whois response before registering failure
+TIMEOUT = 10 # How many seconds we wait for whois response before registering failure
+TEST_STRINGS = ['Registry Expiry Date:', 'Domain Name:', 'Creation Date:', 'Created Date:'] # Strings we test for in registrant data
 #TESTS = [['case-0',1,1], ['case-1',1800,12], ['case-2',900,12], ['case-3',15,240]] # Our test cases as ordered tuples of [test_case, delay, count]
 TESTS = [['case-0',1,1], ['case-1',2,9], ['case-2',4,5], ['case-3',8,2]] # Our test cases as ordered tuples of [test_case, delay, count]
-#DEBUG='wrl.dbg'
-DEBUG=False
+DEBUG='wrl.dbg'
+#DEBUG=False
 
 ###########
 # CLASSES #
@@ -31,7 +34,7 @@ DEBUG=False
 # cnt = count of tests
 class wrlThr(threading.Thread):
   def __init__(self, server, domains, case, delay, cnt):
-    self.server = server
+    self.server = self.canonicalServer(server)
     self.tld = server.split('.')[-1]
     self.desc = self.tld + '_' + case
     self.domains = domains
@@ -42,6 +45,7 @@ class wrlThr(threading.Thread):
 
     #out("Starting thread " + type(self).__name__ + '_' + self.desc)
     threading.Thread.__init__(self, name=type(self).__name__ + '_' + self.desc)
+
 
   def run(self):
     domain = self.domains[self.reps % len(self.domains)]
@@ -55,7 +59,7 @@ class wrlThr(threading.Thread):
     except subprocess.TimeoutExpired:
       out("Fail_timeout " + logStr)
     except subprocess.CalledProcessError:
-      out("Fail_process " + logStr)
+      out("Fail_whois_cmd " + logStr)
     except:
       out("Fail_general " + logStr)
       raise
@@ -66,12 +70,27 @@ class wrlThr(threading.Thread):
         t.start()
 
 
+  # Discover canonical name of whois server
+  def canonicalServer(self, server):
+    d = dns.resolver.Resolver()
+    try:
+      resp = d.query(server, 'CNAME')
+    except:
+      return server
+
+    if len(resp.rrset) < 1:
+      return server
+    else:
+      return str(resp.rrset[0]).strip('.')
+
+
 ####################
 # GLOBAL FUNCTIONS #
 ####################
 
 # Call whois binary and returns output
 def whois(server, domain):
+  out("server_whois:" + server)
   s = WHOIS_BINARY + ' -h ' + server + ' ' + domain
   return str(subprocess.check_output(s.split(), timeout=TIMEOUT))
 #  return "Test String Registry Expiry Date:"
@@ -79,6 +98,9 @@ def whois(server, domain):
 
 # Output a timestamped string
 def out(s):
+  if DYING:
+    return
+
   dt = datetime.datetime.now()
   ts = dt.strftime("%H:%M:%S.%f")
   print(ts + " " + str(s))
@@ -86,6 +108,9 @@ def out(s):
 
 # Dump debugging info to file if DEBUG is set
 def dbg(s):
+  if DYING:
+    return
+  
   if DEBUG:
     df.write("\n\n" + str(s))
 
@@ -95,8 +120,9 @@ def dbg(s):
 def test(s):
   dbg(s)
   if len(s) > 0:
-    if 'Registry Expiry Date:' in s:
-      return True
+    for ts in TEST_STRINGS:
+      if ts in s:
+        return True
   return False
 
 
@@ -111,6 +137,10 @@ def usage(s):
 def euthanize(signal, frame):
   print(str(signal) + " exiting")
 
+  # Set global dying flag
+  global DYING
+  DYING = True
+  
   # Kill all timer threads
   for thr in threading.enumerate():
     if isinstance(thr, threading.Timer):
@@ -130,6 +160,9 @@ def euthanize(signal, frame):
 # Check every 5 seconds to see if all threads dead
 # When they're all dead euthanize
 def hangout():
+  if DYING:
+    return
+
   if threading.active_count() > 2:
     t = threading.Timer(5, hangout)
     t.start()
