@@ -19,7 +19,7 @@ TIMEOUT = 10 # How many seconds we wait for whois response before registering fa
 TEST_STRINGS = ['Registry Expiry Date:', 'Domain Name:', 'Creation Date:', 'Created Date:'] # Strings we test for in registrant data
 #TESTS = [['case-0',1,1], ['case-1',1800,12], ['case-2',900,12], ['case-3',15,240]] # Our test cases as ordered tuples of [test_case, delay, count]
 TESTS = [['case-0',1,1], ['case-1',2,9], ['case-2',4,5], ['case-3',8,2]] # Our test cases as ordered tuples of [test_case, delay, count]
-DEBUG='wrl.dbg'
+DEBUG='wrl_debug.txt'
 #DEBUG=False
 
 ###########
