@@ -32,11 +32,11 @@ DEBUG='wrl_debug.txt'
 # case = name of test case
 # delay = delay between tests in seconds
 # cnt = count of tests
-class wrlThr(threading.Thread):
+class WrlThr(threading.Thread):
   def __init__(self, server, domains, case, delay, cnt):
     self.server = self.canonicalServer(server)
     self.tld = server.split('.')[-1]
-    self.desc = self.tld + '_' + case
+    self.desc = self.server + '_' + case
     self.domains = domains
     self.case = case
     self.delay = delay
@@ -67,6 +67,7 @@ class wrlThr(threading.Thread):
       self.reps += 1
       if self.reps < self.cnt:
         t = threading.Timer(self.delay, self.run)
+        t.name = type(t).__name__ + "_" + self.desc
         t.start()
 
 
@@ -139,19 +140,26 @@ def usage(s):
 
 
 # Run through our test cases
-# Check every 5 seconds is cases are still running, if not start next case
+# Check every 10 seconds is test cases are still running, if not start next case
 def runCases(cases, subjects):
   if DYING:
     return
 
-  out("Active tests:" + str(threading.active_count() - 2))
-  if threading.active_count() > 2: # Tests still running
-    t = threading.Timer(5, runCases, args=[cases,subjects])
+  activeTests = 0
+  for thr in threading.enumerate():
+    if isinstance(thr, WrlThr) or isinstance(thr, threading.Timer):
+      if thr.name != 'Timer_runCases':
+        activeTests += 1
+  
+  out("Active tests:" + str(activeTests))
+  if activeTests > 0:
+    t = threading.Timer(10, runCases, args=[cases,subjects])
+    t.name = type(t).__name__ + "_runCases"
     t.start()
   else:
     if len(cases) > 0:
       for sub in subjects:
-        wrlThr(sub[0], sub[1:], cases[0][0], cases[0][1], cases[0][2]).start()
+        WrlThr(sub[0], sub[1:], cases[0][0], cases[0][1], cases[0][2]).start()
       runCases(cases[1:], subjects)
     else:
       euthanize('END', None)
