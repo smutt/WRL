@@ -52,7 +52,8 @@ class wrlThr(threading.Thread):
 
     logStr = self.server + " " + domain + " " + self.case + "." + str(self.reps)
     try:
-       if test(whois(self.server, domain)):
+       who = whois(self.server, domain)
+       if test(who, self.server, domain):
          out("Pass " + logStr)
        else:
          out("Fail " + logStr)
@@ -90,13 +91,12 @@ class wrlThr(threading.Thread):
 
 # Call whois binary and returns output
 def whois(server, domain):
-  out("server_whois:" + server)
   s = WHOIS_BINARY + ' -h ' + server + ' ' + domain
-  return str(subprocess.check_output(s.split(), timeout=TIMEOUT))
+  return str(subprocess.check_output(s.split(), timeout=TIMEOUT, stderr=subprocess.STDOUT))
 #  return "Test String Registry Expiry Date:"
 
 
-# Output a timestamped string
+# Output a timestamped string to console
 def out(s):
   if DYING:
     return
@@ -116,13 +116,14 @@ def dbg(s):
 
 
 # Test if we are happy with returned results
-# Takes a string, returns boolean
-def test(s):
-  dbg(s)
-  if len(s) > 0:
+# Takes a received string, a whois server, and the domain under test, returns boolean
+def test(rs, server, domain):
+  if len(rs) > 0:
     for ts in TEST_STRINGS:
-      if ts in s:
+      if ts in rs:
+        dbg(">whois -h " + server + " " + domain + " PASS\n" + rs)
         return True
+  dbg(">whois -h " + server + " " + domain + " FAIL\n" + rs)
   return False
 
 
