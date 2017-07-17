@@ -16,7 +16,7 @@ import subprocess
 DYING = False # Set to True when a kill signal has been received
 WHOIS_BINARY = '/bin/whois'
 TIMEOUT = 10 # How many seconds we wait for whois response before registering failure
-TEST_STRINGS = ['Registry Expiry Date:', 'Domain Name:', 'Creation Date:', 'Created Date:'] # Strings we test for in registrant data
+TEST_STRINGS = ['registry expiry date:', 'domain name:', 'creation date:', 'created date:'] # Strings we test for in registrant data
 #TESTS = [['case-0',1,1], ['case-1',1800,12], ['case-2',900,12], ['case-3',15,240]] # Our test cases as ordered tuples of [test_case, delay, count]
 TESTS = [['case-0',1,1], ['case-1',2,9], ['case-2',4,5], ['case-3',8,2]] # Our test cases as ordered tuples of [test_case, delay, count]
 DEBUG='wrl_debug.txt'
@@ -52,8 +52,7 @@ class wrlThr(threading.Thread):
 
     logStr = self.server + " " + domain + " " + self.case + "." + str(self.reps)
     try:
-       who = whois(self.server, domain)
-       if test(who, self.server, domain):
+       if test(whois(self.server, domain), self.server, domain):
          out("Pass " + logStr)
        else:
          out("Fail " + logStr)
@@ -120,9 +119,14 @@ def dbg(s):
 def test(rs, server, domain):
   if len(rs) > 0:
     for ts in TEST_STRINGS:
-      if ts in rs:
+      if ts in rs.lower():
         dbg(">whois -h " + server + " " + domain + " PASS\n" + rs)
         return True
+
+    if 'no match' in rs.lower() and domain in rs.lower():
+      dbg(">whois -h " + server + " " + domain + " PASS_nomatch\n" + rs)
+      return True
+
   dbg(">whois -h " + server + " " + domain + " FAIL\n" + rs)
   return False
 
@@ -132,6 +136,25 @@ def usage(s):
   print(s)
   print("wrl.py CSV")
   exit(0)
+
+
+# Run through our test cases
+# Check every 5 seconds is cases are still running, if not start next case
+def runCases(cases, subjects):
+  if DYING:
+    return
+
+  out("Active tests:" + str(threading.active_count() - 2))
+  if threading.active_count() > 2: # Tests still running
+    t = threading.Timer(5, runCases, args=[cases,subjects])
+    t.start()
+  else:
+    if len(cases) > 0:
+      for sub in subjects:
+        wrlThr(sub[0], sub[1:], cases[0][0], cases[0][1], cases[0][2]).start()
+      runCases(cases[1:], subjects)
+    else:
+      euthanize('END', None)
 
 
 # Die gracefully
@@ -158,19 +181,6 @@ def euthanize(signal, frame):
   sys.exit(0)
 
 
-# Check every 5 seconds to see if all threads dead
-# When they're all dead euthanize
-def hangout():
-  if DYING:
-    return
-
-  if threading.active_count() > 2:
-    t = threading.Timer(5, hangout)
-    t.start()
-  else:
-    euthanize('END', None)
-
-
 ###################
 # BEGIN EXECUTION #
 ###################
@@ -191,15 +201,11 @@ if(len(sys.argv) < 2):
 elif(len(sys.argv) > 2):
   usage("Too many arguments")
 else:
-  lines = []
+  subjects = []
   with open(sys.argv[1], 'r') as f:
     for line in f.read().split('\n'):
       if len(line) > 0:
-        lines.append(line.strip('\n').split(','))
+        subjects.append(line.strip('\n').split(','))
   f.closed
 
-  for T in TESTS:
-    for l in lines:
-     wrlThr(l[0], l[1:], T[0], T[1], T[2]).start()
-
-  hangout()
+  runCases(TESTS, subjects)
