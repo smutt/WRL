@@ -145,14 +145,14 @@ def runCases(cases, subjects):
   if DYING:
     return
 
-  activeTests = 0
+  activeCases = 0
   for thr in threading.enumerate():
     if isinstance(thr, WrlThr) or isinstance(thr, threading.Timer):
       if thr.name != 'Timer_runCases':
-        activeTests += 1
-  
-  out("Active tests:" + str(activeTests))
-  if activeTests > 0:
+        activeCases += 1
+
+  out("Active cases:" + str(activeCases))
+  if activeCases > 0:
     t = threading.Timer(10, runCases, args=[cases,subjects])
     t.name = type(t).__name__ + "_runCases"
     t.start()
