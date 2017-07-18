@@ -17,8 +17,8 @@ DYING = False # Set to True when a kill signal has been received
 WHOIS_BINARY = '/bin/whois'
 TIMEOUT = 10 # How many seconds we wait for whois response before registering failure
 TEST_STRINGS = ['registry expiry date:', 'domain name:', 'creation date:', 'created date:'] # Strings we test for in registrant data
-#TESTS = [['case-0',1,1], ['case-1',1800,12], ['case-2',900,12], ['case-3',15,240]] # Our test cases as ordered tuples of [test_case, delay, count]
-TESTS = [['case-0',1,1], ['case-1',2,9], ['case-2',4,5], ['case-3',8,2]] # Our test cases as ordered tuples of [test_case, delay, count]
+TESTS = [['case-0',1,1], ['case-1',1800,12], ['case-2',900,12], ['case-3',15,240]] # Our test cases as ordered tuples of [test_case, delay, count]
+#TESTS = [['case-0',1,1], ['case-1',2,9], ['case-2',4,5], ['case-3',8,2]] # Our test cases as ordered tuples of [test_case, delay, count]
 DEBUG='wrl_debug.txt'
 #DEBUG=False
 
@@ -140,8 +140,8 @@ def usage(s):
 
 
 # Run through our test cases
-# Check every 10 seconds is test cases are still running, if not start next case
-def runCases(cases, subjects):
+# Check every 10 seconds minimum if test cases are still running, if not start next case
+def runCases(cases, subjects, sleepTime):
   if DYING:
     return
 
@@ -153,14 +153,14 @@ def runCases(cases, subjects):
 
   out("Active cases:" + str(activeCases))
   if activeCases > 0:
-    t = threading.Timer(10, runCases, args=[cases,subjects])
+    t = threading.Timer(sleepTime, runCases, args=[cases, subjects, max(int(sleepTime/2), 10)])
     t.name = type(t).__name__ + "_runCases"
     t.start()
   else:
     if len(cases) > 0:
       for sub in subjects:
         WrlThr(sub[0], sub[1:], cases[0][0], cases[0][1], cases[0][2]).start()
-      runCases(cases[1:], subjects)
+      runCases(cases[1:], subjects, int((cases[0][1] * cases[0][2] / 2) + 10))
     else:
       euthanize('END', None)
 
@@ -216,4 +216,4 @@ else:
         subjects.append(line.strip('\n').split(','))
   f.closed
 
-  runCases(TESTS, subjects)
+  runCases(TESTS, subjects, None)
