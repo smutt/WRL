@@ -5,8 +5,8 @@ import sys
 import random
 import dns.resolver
 
-numTestDomains = 10
-numTopTLDs = 10
+numTestDomains = 100
+numTopTLDs = 100
 ignoreDomains = ['com', 'net', 'jobs', 'cat', 'mil', 'edu', 'gov', 'int', 'arpa']
 serverZone = '.ws.sp.am' # DNS Zone containing CNAME records pointing to whois FQDNs
 
@@ -14,6 +14,7 @@ def dbg(s):
 #  print s
   pass
 
+random.seed()
 zFiles = os.listdir('zonefiles/')
 
 #dbgFiles = 10 # How many files to read while developing this, remove when finished coding
