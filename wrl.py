@@ -155,7 +155,7 @@ def runCases(cases, subjects, sleepTime):
 
   out("ActiveTestThreads:" + str(activeTestThreads))
   if activeTestThreads > 0:
-    t = threading.Timer(sleepTime, runCases, args=[cases, subjects, max(int(sleepTime/2), 10)])
+    t = threading.Timer(sleepTime, runCases, args=[cases, subjects, max(int(sleepTime/2), TIMEOUT)])
     t.name = type(t).__name__ + "_runCases"
     t.start()
   else:
@@ -163,7 +163,7 @@ def runCases(cases, subjects, sleepTime):
       for sub in subjects:
         WrlThr(sub[0], sub[1:], cases[0][0], cases[0][1], cases[0][2]).start()
       random.shuffle(subjects)
-      runCases(cases[1:], subjects, int((cases[0][1] * cases[0][2] / 2) + 10))
+      runCases(cases[1:], subjects, int((cases[0][1] * cases[0][2] / 2) + TIMEOUT))
     else:
       euthanize('END', None)
 
