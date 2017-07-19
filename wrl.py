@@ -6,6 +6,7 @@ import signal
 import dns.resolver
 import threading
 import subprocess
+import random
 
 
 #############
@@ -38,6 +39,7 @@ class WrlThr(threading.Thread):
     self.tld = server.split('.')[-1]
     self.desc = self.server + '_' + case
     self.domains = domains
+    random.shuffle(self.domains)
     self.case = case
     self.delay = delay
     self.cnt = cnt
@@ -145,14 +147,14 @@ def runCases(cases, subjects, sleepTime):
   if DYING:
     return
 
-  activeCases = 0
+  activeTestThreads = 0
   for thr in threading.enumerate():
     if isinstance(thr, WrlThr) or isinstance(thr, threading.Timer):
       if thr.name != 'Timer_runCases':
-        activeCases += 1
+        activeTestThreads += 1
 
-  out("Active cases:" + str(activeCases))
-  if activeCases > 0:
+  out("ActiveTestThreads:" + str(activeTestThreads))
+  if activeTestThreads > 0:
     t = threading.Timer(sleepTime, runCases, args=[cases, subjects, max(int(sleepTime/2), 10)])
     t.name = type(t).__name__ + "_runCases"
     t.start()
@@ -160,6 +162,7 @@ def runCases(cases, subjects, sleepTime):
     if len(cases) > 0:
       for sub in subjects:
         WrlThr(sub[0], sub[1:], cases[0][0], cases[0][1], cases[0][2]).start()
+      random.shuffle(subjects)
       runCases(cases[1:], subjects, int((cases[0][1] * cases[0][2] / 2) + 10))
     else:
       euthanize('END', None)
@@ -193,22 +196,22 @@ def euthanize(signal, frame):
 # BEGIN EXECUTION #
 ###################
 
-# Register some signals
-signal.signal(signal.SIGINT, euthanize)
-signal.signal(signal.SIGTERM, euthanize)
-signal.signal(signal.SIGABRT, euthanize)
-signal.signal(signal.SIGALRM, euthanize)
-signal.signal(signal.SIGSEGV, euthanize)
-signal.signal(signal.SIGHUP, euthanize)
-
-if DEBUG:
-  df = open(DEBUG, 'w', 1)
-
 if(len(sys.argv) < 2):
   usage("Too few arguments")
 elif(len(sys.argv) > 2):
   usage("Too many arguments")
 else:
+  signal.signal(signal.SIGINT, euthanize)
+  signal.signal(signal.SIGTERM, euthanize)
+  signal.signal(signal.SIGABRT, euthanize)
+  signal.signal(signal.SIGALRM, euthanize)
+  signal.signal(signal.SIGSEGV, euthanize)
+  signal.signal(signal.SIGHUP, euthanize)
+
+  if DEBUG:
+    df = open(DEBUG, 'w', 1)
+
+  random.seed()
   subjects = []
   with open(sys.argv[1], 'r') as f:
     for line in f.read().split('\n'):
@@ -216,4 +219,5 @@ else:
         subjects.append(line.strip('\n').split(','))
   f.closed
 
+  random.shuffle(subjects)
   runCases(TESTS, subjects, None)
