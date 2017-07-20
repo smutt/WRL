@@ -13,15 +13,26 @@ import random
 # CONSTANTS #
 #############
 
-
 DYING = False # Set to True when a kill signal has been received
 WHOIS_BINARY = '/bin/whois'
 TIMEOUT = 10 # How many seconds we wait for whois response before registering failure
 TEST_STRINGS = ['registry expiry date:', 'domain name:', 'creation date:', 'created date:'] # Strings we test for in registrant data
-TESTS = [['case-0',1,1], ['case-1',1800,12], ['case-2',900,12], ['case-3',15,240]] # Our test cases as ordered tuples of [test_case, delay, count]
-#TESTS = [['case-0',1,1], ['case-1',2,9], ['case-2',4,5], ['case-3',8,2]] # Our test cases as ordered tuples of [test_case, delay, count]
 DEBUG='wrl_debug.txt'
 #DEBUG=False
+
+# Our test cases as ordered tuples of [test_case, delay, count]
+#TESTS = [['case-0',1,1], ['case-1',2,9], ['case-2',4,5], ['case-3',8,2]] # Useful for development
+#TESTS = [['case-0',1,1], ['case-1',1800,12], ['case-2',900,12], ['case-3',15,240]] # Our old case set
+TESTS = [['case-0', 3600, 5],
+           ['case-1', 1800, 5],
+           ['case-2', 900, 16],
+           ['case-3', 450, 32],
+           ['case-4', 300, 24],
+           ['case-5', 120, 60],
+           ['case-6', 60, 60],
+           ['case-7', 30, 60],
+           ['case-8', 15, 120]]
+
 
 ###########
 # CLASSES #
