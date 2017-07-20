@@ -17,8 +17,8 @@ DYING = False # Set to True when a kill signal has been received
 WHOIS_BINARY = '/bin/whois'
 TIMEOUT = 10 # How many seconds we wait for whois response before registering failure
 TEST_STRINGS = ['registry expiry date:', 'domain name:', 'creation date:', 'created date:'] # Strings we test for in registrant data
-DEBUG='wrl_debug.txt'
-#DEBUG=False
+DEBUG_PREFIX = 'dbg_'
+RESULTS_PREFIX = 'res_'
 
 # Our test cases as ordered tuples of [test_case, delay, count]
 #TESTS = [['case-0',1,1], ['case-1',2,9], ['case-2',4,5], ['case-3',8,2]] # Useful for development
@@ -112,23 +112,22 @@ def whois(server, domain):
 #  return "Test String Registry Expiry Date:"
 
 
-# Output a timestamped string to console
+# Output a timestamped string
 def out(s):
   if DYING:
     return
 
   dt = datetime.datetime.now()
   ts = dt.strftime("%H:%M:%S.%f")
-  print(ts + " " + str(s))
+  rf.write(ts + " " + str(s) + "\n")
 
 
-# Dump debugging info to file if DEBUG is set
+# Dump debugging info to file
 def dbg(s):
   if DYING:
     return
   
-  if DEBUG:
-    df.write("\n\n" + str(s))
+  df.write("\n\n" + str(s))
 
 
 # Test if we are happy with returned results
@@ -198,11 +197,11 @@ def euthanize(signal, frame):
       except:
         pass
 
-  # Close debug file if opened
-  if DEBUG:
-    global df
-    df.close()
-
+  # Close open files
+  global df, rf
+  df.close()
+  rf.close()
+  
   sys.exit(0)
 
 
@@ -222,9 +221,11 @@ else:
   signal.signal(signal.SIGSEGV, euthanize)
   signal.signal(signal.SIGHUP, euthanize)
 
-  if DEBUG:
-    df = open(DEBUG, 'w', 1)
-
+  fname = sys.argv[1].split('.')[0] + "_" + datetime.datetime.now().strftime("%Y_%m_%d") + ".txt"
+  
+  df = open(DEBUG_PREFIX + fname, 'w', 1)
+  rf = open(RESULTS_PREFIX + fname, 'w', 1)
+  
   random.seed()
   subjects = []
   with open(sys.argv[1], 'r') as f:
