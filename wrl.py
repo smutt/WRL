@@ -66,15 +66,18 @@ class WrlThr(threading.Thread):
     logStr = self.server + " " + domain + " " + self.case + "." + str(self.reps)
     try:
        if test(whois(self.server, domain), self.server, domain):
-         out("Pass " + logStr)
+         out("PASS " + logStr)
        else:
-         out("Fail " + logStr)
-    except subprocess.TimeoutExpired:
-      out("Fail_timeout " + logStr)
-    except subprocess.CalledProcessError:
-      out("Fail_whois_cmd " + logStr)
+         out("FAIL " + logStr)
+    except subprocess.TimeoutExpired as e:
+      out("FAIL_timeout " + logStr)
+      dbg(">whois -h " + self.server + " " + domain + " FAIL_timeout\nstdout:" + str(e.stdout) + " stderr:" + str(e.stderr))
+    except subprocess.CalledProcessError as e:
+      out("FAIL_whois_cmd " + logStr)
+      dbg(">whois -h " + self.server + " " + domain + " FAIL_whois_cmd\nchild_exit_status:" + str(e.returncode) + " " + str(e.output))
     except:
-      out("Fail_general " + logStr)
+      out("FAIL_general_child_exception " + logStr)
+      dbg(">whois -h " + self.server + " " + domain + " FAIL_general_child_exception")
       raise
     finally:
       self.reps += 1
