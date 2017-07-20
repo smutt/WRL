@@ -16,7 +16,7 @@ import random
 DYING = False # Set to True when a kill signal has been received
 WHOIS_BINARY = '/bin/whois'
 TIMEOUT = 10 # How many seconds we wait for whois response before registering failure
-TEST_STRINGS = ['registry expiry date:', 'domain name:', 'creation date:', 'created date:'] # Strings we test for in registrant data
+TEST_STRINGS = ['no match', 'registry expiry date:', 'domain name:', 'creation date:', 'created date:'] # Strings we test for in registrant data
 DEBUG_PREFIX = 'dbg_'
 RESULTS_PREFIX = 'res_'
 
@@ -135,13 +135,9 @@ def dbg(s):
 def test(rs, server, domain):
   if len(rs) > 0:
     for ts in TEST_STRINGS:
-      if ts in rs.lower():
-        dbg(">whois -h " + server + " " + domain + " PASS\n" + rs)
+      if ts in rs.lower() and domain in rs.lower():
+        dbg(">whois -h " + server + " " + domain + " PASS_" + ts.replace(' ', '_').strip(':') + "\n" + rs)
         return True
-
-    if 'no match' in rs.lower() and domain in rs.lower():
-      dbg(">whois -h " + server + " " + domain + " PASS_nomatch\n" + rs)
-      return True
 
   dbg(">whois -h " + server + " " + domain + " FAIL\n" + rs)
   return False
