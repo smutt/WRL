@@ -71,7 +71,7 @@ class WrlThr(threading.Thread):
          out("FAIL " + logStr)
     except subprocess.TimeoutExpired as e:
       out("FAIL_timeout " + logStr)
-      dbg(">whois -h " + self.server + " " + domain + " FAIL_timeout\nstdout:" + str(e.stdout) + " stderr:" + str(e.stderr))
+      dbg(">whois -h " + self.server + " " + domain + " FAIL_timeout\nstdout:" + str(e.output))
     except subprocess.CalledProcessError as e:
       out("FAIL_whois_cmd " + logStr)
       dbg(">whois -h " + self.server + " " + domain + " FAIL_whois_cmd\nchild_exit_status:" + str(e.returncode) + " " + str(e.output))
