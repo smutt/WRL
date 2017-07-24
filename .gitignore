@@ -22,3 +22,4 @@ zonefiles
 *.zip
 *.txt
 *.dbg
+*.sh
