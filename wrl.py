@@ -16,12 +16,16 @@ import random
 DYING = False # Set to True when a kill signal has been received
 WHOIS_BINARY = '/bin/whois'
 TIMEOUT = 10 # How many seconds we wait for whois response before registering failure
-TEST_STRINGS = ['no match', 'registry expiry date:', 'domain name:', 'creation date:', 'created date:'] # Strings we test for in registrant data
+TEST_STRINGS = ['registry expiry date:', 'domain name:', 'creation date:', 'created date:'] # Strings we test for in registrant data
 DEBUG_PREFIX = 'dbg_'
 RESULTS_PREFIX = 'res_'
 
+# 3 possible results for each test
+TEST_FAIL = 0
+TEST_PASS = 1
+TEST_NOMATCH = 2
+
 # Our test cases as ordered tuples of [test_case, delay, count]
-#TESTS = [['case-0',1,1], ['case-1',2,9], ['case-2',4,5], ['case-3',8,2]] # Useful for development
 #TESTS = [['case-0',1,1], ['case-1',1800,12], ['case-2',900,12], ['case-3',15,240]] # Our old case set
 TESTS = [['case-0', 3600, 5],
            ['case-1', 1800, 5],
@@ -32,7 +36,7 @@ TESTS = [['case-0', 3600, 5],
            ['case-6', 60, 60],
            ['case-7', 30, 60],
            ['case-8', 15, 120]]
-
+TESTS = [['case-0',1,1], ['case-1',2,9], ['case-2',4,5], ['case-3',8,2]] # Useful for development
 
 ###########
 # CLASSES #
@@ -62,13 +66,17 @@ class WrlThr(threading.Thread):
 
   def run(self):
     domain = self.domains[self.reps % len(self.domains)]
-
     logStr = self.server + " " + domain + " " + self.case + "." + str(self.reps)
+
     try:
-       if test(whois(self.server, domain), self.server, domain):
+       res = test(whois(self.server, domain), self.server, domain)
+       if res == TEST_PASS:
          out("PASS " + logStr)
-       else:
+       elif res == TEST_NOMATCH:
+         out("NOMA " + logStr)
+       elif res == TEST_FAIL:
          out("FAIL " + logStr)
+
     except subprocess.TimeoutExpired as e:
       out("FAIL_timeout " + logStr)
       dbg(">whois -h " + self.server + " " + domain + " FAIL_timeout\nstdout:" + str(e.output))
@@ -131,14 +139,18 @@ def dbg(s):
 
 
 # Test if we are happy with returned results
-# Takes a received string, a whois server, and the domain under test, returns boolean
+# Takes a received string, a whois server, and the domain under test, returns TEST_PASS, TEST_FAIL or TEST_NOMATCH
 def test(rs, server, domain):
   if len(rs) > 0:
     for ts in TEST_STRINGS:
       if ts in rs.lower() and domain in rs.lower():
         dbg(">whois -h " + server + " " + domain + " PASS_" + ts.replace(' ', '_').strip(':') + "\n" + rs)
-        return True
+        return TEST_PASS
 
+    if "no match" in rs.lower() and domain in rs.lower():
+      dbg(">whois -h " + server + " " + domain + " NOMA\n" + rs)
+      return TEST_NOMATCH
+      
   dbg(">whois -h " + server + " " + domain + " FAIL\n" + rs)
   return False
 
