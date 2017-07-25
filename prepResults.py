@@ -20,3 +20,58 @@
 import os
 import sys
 
+
+# Prints error and usage then exits
+def usage(s):
+  print(s)
+  print("prepResults.py FILES")
+  exit(0)
+
+
+if(len(sys.argv) < 2):
+  usage("Too few arguments")
+else:
+  servers = {}
+  servers['header'] = ['server', '0-pass', '0-fail', '0-noma',
+                         '1-pass', '1-fail', '1-noma',
+                         '2-pass', '2-fail', '2-noma',
+                         '3-pass', '3-fail', '3-noma',
+                         '4-pass', '4-fail', '4-noma',
+                         '5-pass', '5-fail', '5-noma',
+                         '6-pass', '6-fail', '6-noma',
+                         '7-pass', '7-fail', '7-noma',
+                         '8-pass', '8-fail', '8-noma']
+
+  for arg in sys.argv[1:]:
+    with open(arg, 'r') as f:
+     for line in f.read().split('\n'):
+       if len(line) > 0:
+         if line.find('ActiveTestThreads') == -1:
+           toks =line.split(' ')
+           if toks[2] not in servers:
+             servers[toks[2]] = []
+             for ii in range(len(servers['header'])):
+               servers[toks[2]].append(0)
+           
+           case = int(toks[4].split('case-')[1].split('.')[0])
+           if toks[1] == 'PASS':
+             servers[toks[2]][(case * 3) + 1] += 1
+           elif toks[1] == 'NOMA':
+             servers[toks[2]][(case * 3) + 3] += 1
+           else:
+             servers[toks[2]][(case * 3) + 2] += 1
+
+  rv = ''
+  for h in servers['header']:
+    rv += h + ','
+  print(rv.strip(','))
+
+  for s in servers.iteritems():
+    if s[0] == 'header':
+      continue
+    rv = s[0] + ','
+    for c in s[1]:
+      rv += str(c) + ','
+    print(rv.strip(','))
+
+  
