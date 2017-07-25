@@ -27,6 +27,7 @@ TEST_NOMATCH = 2
 
 # Our test cases as ordered tuples of [test_case, delay, count]
 #TESTS = [['case-0',1,1], ['case-1',1800,12], ['case-2',900,12], ['case-3',15,240]] # Our old case set
+#TESTS = [['case-0',1,1], ['case-1',2,9], ['case-2',4,5], ['case-3',8,2]] # Useful for development
 TESTS = [['case-0', 3600, 5],
            ['case-1', 1800, 5],
            ['case-2', 900, 16],
@@ -36,7 +37,7 @@ TESTS = [['case-0', 3600, 5],
            ['case-6', 60, 60],
            ['case-7', 30, 60],
            ['case-8', 15, 120]]
-TESTS = [['case-0',1,1], ['case-1',2,9], ['case-2',4,5], ['case-3',8,2]] # Useful for development
+
 
 ###########
 # CLASSES #
