@@ -83,6 +83,12 @@ class WrlThr(threading.Thread):
 
 
   def run(self):
+    t = threading.Timer(self.delay, self.runTests)
+    t.name = type(t).__name__ + "_" + self.desc
+    t.start()
+
+    
+  def runTests(self):
     domain = self.domains[self.reps % len(self.domains)]
     logStr = self.server + " " + domain + " " + self.case + "." + str(self.reps)
 
@@ -108,7 +114,7 @@ class WrlThr(threading.Thread):
     finally:
       self.reps += 1
       if self.reps < self.cnt:
-        t = threading.Timer(self.delay, self.run)
+        t = threading.Timer(self.delay, self.runTests)
         t.name = type(t).__name__ + "_" + self.desc
         t.start()
 
@@ -181,7 +187,7 @@ def usage(s):
 
 
 # Run through our test cases
-# Check every 10 seconds minimum if test cases are still running, if not start next case
+# Check every TIMEOUT seconds minimum if test cases are still running, if not start next case
 def runCases(cases, subjects, sleepTime):
   if DYING:
     return
