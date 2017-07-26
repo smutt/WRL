@@ -50,16 +50,16 @@ else:
            toks =line.split(' ')
            if toks[2] not in servers:
              servers[toks[2]] = []
-             for ii in range(len(servers['header'])):
+             for ii in range(len(servers['header']) - 1):
                servers[toks[2]].append(0)
-           
+
            case = int(toks[4].split('case-')[1].split('.')[0])
            if toks[1] == 'PASS':
-             servers[toks[2]][(case * 3) + 1] += 1
+             servers[toks[2]][(case * 3) + 0] += 1
            elif toks[1] == 'NOMA':
-             servers[toks[2]][(case * 3) + 3] += 1
-           else:
              servers[toks[2]][(case * 3) + 2] += 1
+           else:
+             servers[toks[2]][(case * 3) + 1] += 1
 
   rv = ''
   for h in servers['header']:
