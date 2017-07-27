@@ -23,6 +23,7 @@ import matplotlib
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
+
 # Takes CSV data and an offset
 # Returns percentages as a list of floats
 def percs(data, offset):
@@ -51,9 +52,7 @@ else:
   percsPass = percs(data, 1)
   percsFail = percs(data, 2)
   percsNoma = percs(data, 3)
-
-  print("%_FAIL:" + repr(percsFail))
-
+  #print("%_FAIL:" + repr(percsFail))
   
   xTicks = [1.0, 2.0, 4.0, 8.0, 12.0, 30.0, 60.0, 120.0, 240.0] # Queries per-hour
   legend = []
@@ -62,11 +61,15 @@ else:
   ax.set_xticks(xTicks)
   ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
   ax.set_ylabel("% Failure")
-  ax.set_xlabel("Queries / Hour")
-  
+  ax.set_xlabel("Queries / Hour (logN)")
+
   for k,v in percsFail.iteritems():
-    ax.plot(xTicks, v)
-    legend.append(k)
+    if sum(v) > 0:
+      if min(v) != 100:
+        ax.plot(xTicks, v)
+        legend.append(k)
+      else:
+        print("100%:" + k)
 
   ax.legend(legend, loc=2, bbox_to_anchor=(1, 1))
   fig.savefig('wrl_1.png', pad_inches=0.1, bbox_inches='tight')
