@@ -208,7 +208,7 @@ def runCases(cases, subjects, sleepTime):
       for sub in subjects:
         WrlThr(sub[0], sub[1:], cases[0][0], cases[0][1], cases[0][2]).start()
       random.shuffle(subjects)
-      runCases(cases[1:], subjects, int((cases[0][1] * cases[0][2] / 2) + TIMEOUT))
+      runCases(cases[1:], subjects, int((cases[0][1] * (cases[0][2] + 1) / 2) + TIMEOUT))
     else:
       euthanize('END', None)
 
