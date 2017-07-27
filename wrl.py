@@ -54,6 +54,8 @@ TESTS = [['case-0', 3600, 5],   # 5 hours, 1q/h
            ['case-6', 60, 60],  # 1 hour, 60q/h
            ['case-7', 30, 60],  # 0.5 hours, 120q/h
            ['case-8', 15, 120]] # 0.5 hours, 240q/h
+                                # Total queries == 382
+                                # Total time == 21.5 hours
 
 
 ###########
