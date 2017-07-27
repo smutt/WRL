@@ -52,14 +52,21 @@ else:
   percsFail = percs(data, 2)
   percsNoma = percs(data, 3)
 
-  xTicks = [1, 2, 4, 8, 12, 30, 60, 120, 240] # Queries per-hour
+  print("%_FAIL:" + repr(percsFail))
+
+  
+  xTicks = [1.0, 2.0, 4.0, 8.0, 12.0, 30.0, 60.0, 120.0, 240.0] # Queries per-hour
   legend = []
   fig, ax = plt.subplots()
+  ax.set_xscale('log')
   ax.set_xticks(xTicks)
-  plt.figure(figsize=(15,10))
-  for k,v in percs.iteritems():
-    plt.plot(xTicks, v)
+  ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+  ax.set_ylabel("% Failure")
+  ax.set_xlabel("Queries / Hour")
+  
+  for k,v in percsFail.iteritems():
+    ax.plot(xTicks, v)
     legend.append(k)
 
-  plt.legend(legend, loc=2, bbox_to_anchor=(1, 1))
-  plt.savefig('wrl_1.png', pad_inches=0.1, bbox_inches='tight')
+  ax.legend(legend, loc=2, bbox_to_anchor=(1, 1))
+  fig.savefig('wrl_1.png', pad_inches=0.1, bbox_inches='tight')
