@@ -22,7 +22,17 @@ import sys
 import matplotlib
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
-#import pyplot as plt
+
+# Takes CSV data and an offset
+# Returns percentages as a list of floats
+def percs(data, offset):
+  rv = {}
+  for line in data[1:]:
+    rv[line[0]] = []
+    for ii in xrange(9):
+      rv[line[0]].append(100 * (float(line[ii * 3 + offset]) / (int(line[ii * 3 + 1]) + int(line[ii * 3 + 2]) + int(line[ii * 3 + 3]))))
+  return rv
+
 
 if(len(sys.argv) < 2):
   print("Too few arguments")
@@ -38,16 +48,11 @@ else:
         data.append(line.strip('\n').split(','))
   f.closed
 
-  xTicks = [1, 2, 4, 8, 12, 30, 60, 120, 240] # Queries per-hour
-  
-  percs = {}
-  for line in data[1:]:
-    percs[line[0]] = []
-    for ii in xrange(9):
-      fail = (ii * 3) + 2
-      perc = 100 * (float(line[fail]) / (int(line[fail]) + int(line[fail + 1]) + int(line[fail - 1])))
-      percs[line[0]].append(perc)
+  percsPass = percs(data, 1)
+  percsFail = percs(data, 2)
+  percsNoma = percs(data, 3)
 
+  xTicks = [1, 2, 4, 8, 12, 30, 60, 120, 240] # Queries per-hour
   legend = []
   fig, ax = plt.subplots()
   ax.set_xticks(xTicks)
