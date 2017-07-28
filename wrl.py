@@ -1,5 +1,22 @@
 #!/usr/bin/python3
 
+#  The file is part of the WRL Project.
+#
+#  The WRL Project is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  The WRL Project is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+#  Copyright (C) 2017, Andrew McConachie, <andrew.mcconachie@icann.org>
+
 import sys
 import datetime
 import signal
@@ -27,17 +44,32 @@ TEST_NOMATCH = 2
 
 # Our test cases as ordered tuples of [test_case, delay, count]
 #TESTS = [['case-0',1,1], ['case-1',1800,12], ['case-2',900,12], ['case-3',15,240]] # Our old case set
-TESTS = [['case-0', 3600, 5],
-           ['case-1', 1800, 5],
-           ['case-2', 900, 16],
-           ['case-3', 450, 32],
-           ['case-4', 300, 24],
-           ['case-5', 120, 60],
-           ['case-6', 60, 60],
-           ['case-7', 30, 60],
-           ['case-8', 15, 120]]
-TESTS = [['case-0',1,1], ['case-1',2,9], ['case-2',4,5], ['case-3',8,2]] # Useful for development
+#TESTS = [['case-0',1,1], ['case-1',30,8], ['case-2',10,5], ['case-3',8,2]] # Useful for development
+#TESTS = [['case-0', 3600, 5],   # 5 hours, 1q/h
+#           ['case-1', 1800, 5], # 2.5 hours, 2q/h
+#           ['case-2', 900, 16], # 4 hours, 4q/h
+#           ['case-3', 450, 32], # 4 hours, 8q/h
+#           ['case-4', 300, 24], # 2 hours, 12q/h
+#           ['case-5', 120, 60], # 2 hours, 30q/h
+#           ['case-6', 60, 60],  # 1 hour, 60q/h
+#           ['case-7', 30, 60],  # 0.5 hours, 120q/h
+#           ['case-8', 15, 120]] # 0.5 hours, 240q/h
+                                # Total queries == 382
+                                # Total time == 21.5 hours
 
+TESTS = [['case-0', 3600, 5],	# 5 hours, 1q/h
+           ['case-1', 1800, 10], # 5 hours, 2q/h
+           ['case-2', 900, 20],  # 5 hours, 4q/h
+           ['case-3', 450, 40],  # 5 hours, 8q/h
+           ['case-4', 240, 75],  # 5 hours, 15q/h
+           ['case-5', 120, 150], # 5 hours, 30q/h
+           ['case-6', 60, 300],  # 5 hour, 60q/h
+           ['case-7', 30, 600],  # 5 hours, 120q/h
+           ['case-8', 15, 1200]] # 5 hours, 240q/h
+                                 # Total queries == 2,450
+                                 # Total time == 45 hours
+
+  
 ###########
 # CLASSES #
 ###########
@@ -91,6 +123,10 @@ class WrlThr(threading.Thread):
       self.reps += 1
       if self.reps < self.cnt:
         t = threading.Timer(self.delay, self.run)
+        t.name = type(t).__name__ + "_" + self.desc
+        t.start()
+      elif self.reps == self.cnt:
+        t = threading.Timer(self.delay, lambda:None)
         t.name = type(t).__name__ + "_" + self.desc
         t.start()
 
@@ -150,7 +186,7 @@ def test(rs, server, domain):
     if "no match" in rs.lower() and domain in rs.lower():
       dbg(">whois -h " + server + " " + domain + " NOMA\n" + rs)
       return TEST_NOMATCH
-      
+
   dbg(">whois -h " + server + " " + domain + " FAIL\n" + rs)
   return False
 
@@ -163,7 +199,7 @@ def usage(s):
 
 
 # Run through our test cases
-# Check every 10 seconds minimum if test cases are still running, if not start next case
+# Check every TIMEOUT seconds minimum if test cases are still running, if not start next case
 def runCases(cases, subjects, sleepTime):
   if DYING:
     return
@@ -184,7 +220,7 @@ def runCases(cases, subjects, sleepTime):
       for sub in subjects:
         WrlThr(sub[0], sub[1:], cases[0][0], cases[0][1], cases[0][2]).start()
       random.shuffle(subjects)
-      runCases(cases[1:], subjects, int((cases[0][1] * cases[0][2] / 2) + TIMEOUT))
+      runCases(cases[1:], subjects, int((cases[0][1] * (cases[0][2] + 1) / 2) + TIMEOUT))
     else:
       euthanize('END', None)
 

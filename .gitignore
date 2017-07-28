@@ -18,6 +18,7 @@ zonefiles
 *.pdf
 *.jpg
 *.jpeg
+*.png
 *.tgz
 *.zip
 *.txt
