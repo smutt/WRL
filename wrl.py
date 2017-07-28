@@ -45,19 +45,31 @@ TEST_NOMATCH = 2
 # Our test cases as ordered tuples of [test_case, delay, count]
 #TESTS = [['case-0',1,1], ['case-1',1800,12], ['case-2',900,12], ['case-3',15,240]] # Our old case set
 #TESTS = [['case-0',1,1], ['case-1',2,9], ['case-2',4,5], ['case-3',8,2]] # Useful for development
-TESTS = [['case-0', 3600, 5],   # 5 hours, 1q/h
-           ['case-1', 1800, 5], # 2.5 hours, 2q/h
-           ['case-2', 900, 16], # 4 hours, 4q/h
-           ['case-3', 450, 32], # 4 hours, 8q/h
-           ['case-4', 300, 24], # 2 hours, 12q/h
-           ['case-5', 120, 60], # 2 hours, 30q/h
-           ['case-6', 60, 60],  # 1 hour, 60q/h
-           ['case-7', 30, 60],  # 0.5 hours, 120q/h
-           ['case-8', 15, 120]] # 0.5 hours, 240q/h
+#TESTS = [['case-0', 3600, 5],   # 5 hours, 1q/h
+#           ['case-1', 1800, 5], # 2.5 hours, 2q/h
+#           ['case-2', 900, 16], # 4 hours, 4q/h
+#           ['case-3', 450, 32], # 4 hours, 8q/h
+#           ['case-4', 300, 24], # 2 hours, 12q/h
+#           ['case-5', 120, 60], # 2 hours, 30q/h
+#           ['case-6', 60, 60],  # 1 hour, 60q/h
+#           ['case-7', 30, 60],  # 0.5 hours, 120q/h
+#           ['case-8', 15, 120]] # 0.5 hours, 240q/h
                                 # Total queries == 382
                                 # Total time == 21.5 hours
 
+TESTS = [['case-0', 3600, 5],	# 5 hours, 1q/h
+           ['case-1', 1800, 10], # 5 hours, 2q/h
+           ['case-2', 900, 20],  # 5 hours, 4q/h
+           ['case-3', 450, 40],  # 5 hours, 8q/h
+           ['case-4', 240, 75],  # 5 hours, 15q/h
+           ['case-5', 120, 150], # 5 hours, 30q/h
+           ['case-6', 60, 300],  # 5 hour, 60q/h
+           ['case-7', 30, 600],  # 5 hours, 120q/h
+           ['case-8', 15, 1200]] # 5 hours, 240q/h
+                                 # Total queries == 2,450
+                                 # Total time == 45 hours
 
+  
 ###########
 # CLASSES #
 ###########
@@ -176,7 +188,7 @@ def test(rs, server, domain):
     if "no match" in rs.lower() and domain in rs.lower():
       dbg(">whois -h " + server + " " + domain + " NOMA\n" + rs)
       return TEST_NOMATCH
-      
+
   dbg(">whois -h " + server + " " + domain + " FAIL\n" + rs)
   return False
 
