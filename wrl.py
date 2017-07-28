@@ -44,7 +44,7 @@ TEST_NOMATCH = 2
 
 # Our test cases as ordered tuples of [test_case, delay, count]
 #TESTS = [['case-0',1,1], ['case-1',1800,12], ['case-2',900,12], ['case-3',15,240]] # Our old case set
-#TESTS = [['case-0',1,1], ['case-1',2,9], ['case-2',4,5], ['case-3',8,2]] # Useful for development
+#TESTS = [['case-0',1,1], ['case-1',30,8], ['case-2',10,5], ['case-3',8,2]] # Useful for development
 #TESTS = [['case-0', 3600, 5],   # 5 hours, 1q/h
 #           ['case-1', 1800, 5], # 2.5 hours, 2q/h
 #           ['case-2', 900, 16], # 4 hours, 4q/h
@@ -97,12 +97,6 @@ class WrlThr(threading.Thread):
 
 
   def run(self):
-    t = threading.Timer(self.delay, self.runTests)
-    t.name = type(t).__name__ + "_" + self.desc
-    t.start()
-
-    
-  def runTests(self):
     domain = self.domains[self.reps % len(self.domains)]
     logStr = self.server + " " + domain + " " + self.case + "." + str(self.reps)
 
@@ -128,7 +122,11 @@ class WrlThr(threading.Thread):
     finally:
       self.reps += 1
       if self.reps < self.cnt:
-        t = threading.Timer(self.delay, self.runTests)
+        t = threading.Timer(self.delay, self.run)
+        t.name = type(t).__name__ + "_" + self.desc
+        t.start()
+      elif self.reps == self.cnt:
+        t = threading.Timer(self.delay, lambda:None)
         t.name = type(t).__name__ + "_" + self.desc
         t.start()
 
