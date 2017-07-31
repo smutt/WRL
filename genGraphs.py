@@ -35,41 +35,45 @@ def percs(data, offset):
   return rv
 
 
-if(len(sys.argv) < 2):
-  print("Too few arguments")
-  exit(1)
-elif(len(sys.argv) > 2):
-  print("Too many arguments")
-  exit(1)
+if not sys.stdin.isatty():
+  f = sys.stdin
 else:
-  data = []
-  with open(sys.argv[1], 'r') as f:
-    for line in f.read().split('\n'):
-      if len(line) > 0:
-        data.append(line.strip('\n').split(','))
-  f.closed
+  if len(sys.argv) < 2:
+    print("Too few arguments")
+    exit(1)
+  elif len(sys.argv) > 2:
+    print("Too many arguments")
+    exit(1)
+  else:
+    f = open(sys.argv[1], 'r')
+    
+data = []
+for line in f.read().split('\n'):
+  if len(line) > 0:
+    data.append(line.strip('\n').split(','))
+f.closed
 
-  percsPass = percs(data, 1)
-  percsFail = percs(data, 2)
-  percsNoma = percs(data, 3)
-  #print("%_FAIL:" + repr(percsFail))
+percsPass = percs(data, 1)
+percsFail = percs(data, 2)
+percsNoma = percs(data, 3)
+#print("%_FAIL:" + repr(percsFail))
   
-  xTicks = [1.0, 2.0, 4.0, 8.0, 12.0, 30.0, 60.0, 120.0, 240.0] # Queries per-hour
-  legend = []
-  fig, ax = plt.subplots()
-  ax.set_xscale('log')
-  ax.set_xticks(xTicks)
-  ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-  ax.set_ylabel("% Failure")
-  ax.set_xlabel("Queries / Hour (logN)")
+xTicks = [1.0, 2.0, 4.0, 8.0, 15.0, 30.0, 60.0, 120.0, 240.0] # Queries per-hour
+legend = []
+fig, ax = plt.subplots()
+ax.set_xscale('log')
+ax.set_xticks(xTicks)
+ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+ax.set_ylabel("% Failure")
+ax.set_xlabel("Queries / Hour (logN)")
 
-  for k,v in percsFail.iteritems():
-    if sum(v) > 0:
-      if min(v) != 100:
-        ax.plot(xTicks, v)
-        legend.append(k)
-      else:
-        print("100%:" + k)
+for k,v in percsFail.iteritems():
+  if sum(v) > 0:
+    if min(v) != 100:
+      ax.plot(xTicks, v)
+      legend.append(k)
+    else:
+      print("100%:" + k)
 
-  ax.legend(legend, loc=2, bbox_to_anchor=(1, 1))
-  fig.savefig('wrl_1.png', pad_inches=0.1, bbox_inches='tight')
+ax.legend(legend, loc=2, bbox_to_anchor=(1, 1))
+fig.savefig('wrl_1.png', pad_inches=0.1, bbox_inches='tight')
