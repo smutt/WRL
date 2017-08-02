@@ -23,7 +23,7 @@ import urllib2
 from bs4 import BeautifulSoup
 
 numRegs = 10
-numDomains = 10
+numDomains = 60
 
 # Returns string between passed strings
 def between(s, s1, s2):
