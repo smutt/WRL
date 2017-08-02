@@ -17,16 +17,23 @@
 #
 #  Copyright (C) 2017, Andrew McConachie, <andrew.mcconachie@icann.org>
 
-import os
 import sys
+import datetime
+import argparse
 import matplotlib
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
 
+# Order of tuples in CSV input
+PASS = 1
+FAIL = 2
+NOMA = 3
+
+
 # Takes CSV data and an offset
 # Returns percentages as a list of floats
-def percs(data, offset):
+def calcPercs(data, offset):
   rv = {}
   for line in data[1:]:
     rv[line[0]] = []
@@ -35,45 +42,40 @@ def percs(data, offset):
   return rv
 
 
-if not sys.stdin.isatty():
-  f = sys.stdin
-else:
-  if len(sys.argv) < 2:
-    print("Too few arguments")
-    exit(1)
-  elif len(sys.argv) > 2:
-    print("Too many arguments")
-    exit(1)
-  else:
-    f = open(sys.argv[1], 'r')
+ap = argparse.ArgumentParser(description='Generate graphs from CSV files.')
+ap.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin, help='CSV input file')
+ap.add_argument('graph', choices=['pass', 'fail', 'noma'], help='Values to graph')
+args = ap.parse_args()
     
 data = []
-for line in f.read().split('\n'):
+for line in args.infile.read().split('\n'):
   if len(line) > 0:
     data.append(line.strip('\n').split(','))
-f.closed
+args.infile.closed
 
-percsPass = percs(data, 1)
-percsFail = percs(data, 2)
-percsNoma = percs(data, 3)
-#print("%_FAIL:" + repr(percsFail))
-  
+percs = {}
+percs['pass'] = calcPercs(data, PASS)
+percs['fail'] = calcPercs(data, FAIL)
+percs['noma'] = calcPercs(data, NOMA)
+#print("%_FAIL:" + repr(percs['fail']))
+
 xTicks = [1.0, 2.0, 4.0, 8.0, 15.0, 30.0, 60.0, 120.0, 240.0] # Queries per-hour
 legend = []
 fig, ax = plt.subplots()
 ax.set_xscale('log')
 ax.set_xticks(xTicks)
 ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-ax.set_ylabel("% Failure")
 ax.set_xlabel("Queries / Hour (logN)")
+ax.set_ylabel("% " + args.graph)
 
-for k,v in percsFail.iteritems():
+for k,v in percs[args.graph].iteritems():
   if sum(v) > 0:
     if min(v) != 100:
       ax.plot(xTicks, v)
       legend.append(k)
     else:
-      print("100%:" + k)
+      print("100% " + args.graph + ":" + k)
 
 ax.legend(legend, loc=2, bbox_to_anchor=(1, 1))
-fig.savefig('wrl_1.png', pad_inches=0.1, bbox_inches='tight')
+date = datetime.datetime.now().strftime("%Y_%m_%d")
+fig.savefig(args.graph + '_' + date + '.png', pad_inches=0.1, bbox_inches='tight')
