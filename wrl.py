@@ -204,7 +204,7 @@ def test(rs, server, domain):
       return TEST_NOMATCH
 
   dbg(">whois -h " + server + " " + domain + " FAIL\n" + rs)
-  return False
+  return TEST_FAIL
 
 
 # Prints error and usage then exits
