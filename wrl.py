@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 #  The file is part of the WRL Project.
 #
@@ -17,6 +17,7 @@
 #
 #  Copyright (C) 2017, Andrew McConachie, <andrew.mcconachie@icann.org>
 
+import os
 import sys
 import datetime
 import signal
@@ -31,11 +32,14 @@ import random
 #############
 
 DYING = False # Set to True when a kill signal has been received
-WHOIS_BINARY = '/bin/whois'
 TIMEOUT = 10 # How many seconds we wait for whois response before registering failure
 TEST_STRINGS = ['registry expiry date:', 'domain name:', 'creation date:', 'created date:'] # Strings we test for in registrant data
 DEBUG_PREFIX = 'dbg_'
 RESULTS_PREFIX = 'res_'
+if os.uname().sysname.lower() == 'linux':
+  WHOIS_BINARY = '/bin/whois'
+elif os.uname().sysname.lower() == 'freebsd':
+  WHOIS_BINARY = '/usr/bin/whois'
 
 # 3 possible results for each test
 TEST_FAIL = 0
