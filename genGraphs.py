@@ -43,10 +43,18 @@ def calcPercs(data, offset):
 
 
 ap = argparse.ArgumentParser(description='Generate graphs from CSV files.')
-ap.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin, help='CSV input file')
+ap.add_argument('-p', '--prefix', nargs=1, metavar='prefix', dest='prefix',
+                  type=str, default=None, required=False, help='Output filename prefix')
+ap.add_argument('-f', '--file', nargs=1, metavar='file', dest='infile',
+                  type=argparse.FileType('r'), default=sys.stdin, required=False, help='CSV input file if not using stdin')
 ap.add_argument('graph', choices=['pass', 'fail', 'noma'], help='Values to graph')
 args = ap.parse_args()
-    
+
+if args.prefix == None:
+  outFilePref = ''
+else:
+  outFilePref = args.prefix[0].strip('_').strip()
+  
 data = []
 for line in args.infile.read().split('\n'):
   if len(line) > 0:
@@ -78,4 +86,4 @@ for k,v in percs[args.graph].iteritems():
 
 ax.legend(legend, loc=2, bbox_to_anchor=(1, 1))
 date = datetime.datetime.now().strftime("%Y_%m_%d")
-fig.savefig(args.graph + '_' + date + '.png', pad_inches=0.1, bbox_inches='tight')
+fig.savefig(outFilePref + '_' + args.graph + '_' + date + '.png', pad_inches=0.1, bbox_inches='tight')
