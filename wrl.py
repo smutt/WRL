@@ -281,11 +281,11 @@ else:
   signal.signal(signal.SIGSEGV, euthanize)
   signal.signal(signal.SIGHUP, euthanize)
 
-  fname = sys.argv[1].split('.')[0] + "_" + datetime.datetime.now().strftime("%Y_%m_%d") + ".txt"
-  
+  fname = os.uname().nodename.split('.')[0] + "_" + sys.argv[1].split('.')[0] + "_" + datetime.datetime.now().strftime("%Y_%m_%d") + ".txt"
+
   df = open(DEBUG_PREFIX + fname, 'w', 1)
   rf = open(RESULTS_PREFIX + fname, 'w', 1)
-  
+
   random.seed()
   subjects = []
   with open(sys.argv[1], 'r') as f:
