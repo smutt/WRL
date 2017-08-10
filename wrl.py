@@ -178,7 +178,7 @@ def out(s):
     return
 
   dt = datetime.datetime.now()
-  ts = dt.strftime("%H:%M:%S.%f")
+  ts = dt.strftime("%m/%d/%H:%M:%S.%f")
   rf.write(ts + " " + str(s) + "\n")
 
 
