@@ -73,15 +73,15 @@ TEST_NOMATCH = 2
                                  # Total queries == 2,450
                                  # Total time == 45 hours
 
-TESTS = [['case-0', 3600, 10],   # 5 hours, 1q/h
-           ['case-1', 1800, 20], # 5 hours, 2q/h
-           ['case-2', 900, 40],  # 5 hours, 4q/h
-           ['case-3', 450, 80],  # 5 hours, 8q/h
-           ['case-4', 240, 150], # 5 hours, 15q/h
-           ['case-5', 120, 300], # 5 hours, 30q/h
-           ['case-6', 60, 600],  # 5 hour, 60q/h
-           ['case-7', 30, 1200], # 5 hours, 120q/h
-           ['case-8', 15, 2400]] # 5 hours, 240q/h
+TESTS = [['case-0', 3600, 10],   # 10 hours, 1q/h
+           ['case-1', 1800, 20], # 10 hours, 2q/h
+           ['case-2', 900, 40],  # 10 hours, 4q/h
+           ['case-3', 450, 80],  # 10 hours, 8q/h
+           ['case-4', 240, 150], # 10 hours, 15q/h
+           ['case-5', 120, 300], # 10 hours, 30q/h
+           ['case-6', 60, 600],  # 10 hour, 60q/h
+           ['case-7', 30, 1200], # 10 hours, 120q/h
+           ['case-8', 15, 2400]] # 10 hours, 240q/h
                                  # Total queries == 4,900
                                  # Total time == 90 hours
 
