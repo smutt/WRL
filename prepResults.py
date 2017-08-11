@@ -27,7 +27,9 @@ import re
 ap = argparse.ArgumentParser(description='Process results files into CSV')
 ap.add_argument(nargs='+', metavar='file', dest='infile', type=argparse.FileType('r'),
                   default=sys.stdin, help='Results input file if not using stdin')
-ap.add_argument('-q', '--qh', action='store_true', dest='qh', help='Append queries/hour')
+ap.add_argument('-q', '--qh', action='store_true', dest='qh', help='Append queries/hour to output')
+ap.add_argument('-p', '--period', nargs=1, metavar='period', dest='period',
+                  type=int, default=None, required=False, help='Hardset time period in hours for all test cases')
 args = ap.parse_args()
 
 ts = {}
@@ -69,7 +71,6 @@ for f in args.infile:
         else:
           servers[toks[2]][(case * 3) + 1] += 1
 
-#print(repr(ts))
 rv = ''
 for h in servers['header']:
   rv += h + ','
@@ -87,22 +88,25 @@ for s in servers.iteritems():
     rv += str(c) + ','
   if args.qh:
     for ii in range(len(ts[s[0]]) - 1): # Handle query/hour calculations
-      queries = sum(s[1][ii * 3: (ii * 3) + 3])
-      if ts[s[0]][ii].find('/') == -1: # Old style dates, %H:%M:%S.%f
-        fHour, fMinute, fSecond, fMs = map(int, p.findall(ts[s[0]][ii]))
-        lHour, lMinute, lSecond, lMs = map(int, p.findall(ts[s[0]][ii+1]))
-        first = datetime.datetime(2017, 01, 15, fHour, fMinute, fSecond, fMs)
-        last = datetime.datetime(2017, 01, 15, lHour, lMinute, lSecond, lMs)
-        if last > first:
-          qh = int(queries / int((last - first).total_seconds() / 3600) )
-        else:
-          qh = int(queries / int((86400 - (first - last).total_seconds()) / 3600))
-      else: # New style dates, %m/%d/%H:%M:%S.%f
-        fMonth, fDay, fHour, fMinute, fSecond, fMs = map(int, p.findall(ts[s[0]][ii]))
-        lMonth, lDay, lHour, lMinute, lSecond, lMs = map(int, p.findall(ts[s[0]][ii+1]))
+      queries = int(sum(s[1][ii * 3: (ii * 3) + 3]) / len(args.infile))
+      if args.period:
+        qh = int(queries / args.period[0])
+      else:
+        if ts[s[0]][ii].find('/') == -1: # Old style dates, %H:%M:%S.%f
+          fHour, fMinute, fSecond, fMs = map(int, p.findall(ts[s[0]][ii]))
+          lHour, lMinute, lSecond, lMs = map(int, p.findall(ts[s[0]][ii+1]))
+          first = datetime.datetime(2017, 01, 15, fHour, fMinute, fSecond, fMs)
+          last = datetime.datetime(2017, 01, 15, lHour, lMinute, lSecond, lMs)
+          if last > first:
+            qh = int(queries / int((last - first).total_seconds() / 3600))
+          else:
+            qh = int(queries / int((86400 - (first - last).total_seconds()) / 3600))
+        else: # New style dates, %m/%d/%H:%M:%S.%f
+          fMonth, fDay, fHour, fMinute, fSecond, fMs = map(int, p.findall(ts[s[0]][ii]))
+          lMonth, lDay, lHour, lMinute, lSecond, lMs = map(int, p.findall(ts[s[0]][ii+1]))
 
-        first = datetime.datetime(2017, fMonth, fDay, fHour, fMinute, fSecond, fMs)
-        last = datetime.datetime(2017, lMonth, lDay, lHour, lMinute, lSecond, lMs)
-        qh = int(queries / (last - first).total_seconds() * 3600)
+          first = datetime.datetime(2017, fMonth, fDay, fHour, fMinute, fSecond, fMs)
+          last = datetime.datetime(2017, lMonth, lDay, lHour, lMinute, lSecond, lMs)
+          qh = int(queries / (last - first).total_seconds() * 3600)
       rv += str(qh) + ','
   print(rv.strip(','))
