@@ -33,16 +33,18 @@ NOMA = 3
 
 # Takes CSV data and an offset
 # Returns percentages as a list of floats
-def calcPercs(data, offset):
+def calcPercs(data, offset, numCases):
   rv = {}
-  for line in data[1:]:
+  for line in data:
     rv[line[0]] = []
-    for ii in xrange(9):
+    for ii in xrange(numCases):
       rv[line[0]].append(100 * (float(line[ii * 3 + offset]) / (int(line[ii * 3 + 1]) + int(line[ii * 3 + 2]) + int(line[ii * 3 + 3]))))
   return rv
 
 
 ap = argparse.ArgumentParser(description='Generate graphs from CSV files.')
+ap.add_argument('-q', '--qh', action='store_true', dest='qh', help='Use appended queries/hour')
+ap.add_argument('-d', '--debug', action='store_true', dest='dbg', help='Print results to stdout instead of graphing')
 ap.add_argument('-p', '--prefix', nargs=1, metavar='prefix', dest='prefix',
                   type=str, default=None, required=False, help='Output filename prefix')
 ap.add_argument('-f', '--file', nargs=1, metavar='file', dest='infile',
@@ -58,16 +60,27 @@ else:
 data = []
 for line in args.infile.read().split('\n'):
   if len(line) > 0:
+    if line.split(',')[0] == 'server': # Don't append header line
+      continue
     data.append(line.strip('\n').split(','))
 args.infile.closed
 
-percs = {}
-percs['pass'] = calcPercs(data, PASS)
-percs['fail'] = calcPercs(data, FAIL)
-percs['noma'] = calcPercs(data, NOMA)
-#print("%_FAIL:" + repr(percs['fail']))
+if args.qh:
+  xTicks = map(float, data[0][-9:])
+else:
+  xTicks = [1.0, 2.0, 4.0, 8.0, 15.0, 30.0, 60.0, 120.0, 240.0] # Hardcoded Queries per-hour
 
-xTicks = [1.0, 2.0, 4.0, 8.0, 15.0, 30.0, 60.0, 120.0, 240.0] # Queries per-hour
+percs = {}
+percs['pass'] = calcPercs(data, PASS, len(xTicks))
+percs['fail'] = calcPercs(data, FAIL, len(xTicks))
+percs['noma'] = calcPercs(data, NOMA, len(xTicks))
+
+if args.dbg:
+  print("xTicks:" + repr(xTicks))
+  for res in percs[args.graph].iteritems():
+    print(repr(res))
+  exit(0)
+
 legend = []
 fig, ax = plt.subplots()
 ax.set_xscale('log')
