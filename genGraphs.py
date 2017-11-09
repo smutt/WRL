@@ -45,6 +45,7 @@ def calcPercs(data, offset, numCases):
 ap = argparse.ArgumentParser(description='Generate graphs from CSV files.')
 ap.add_argument('-q', '--qh', action='store_true', dest='qh', help='Use appended queries/hour')
 ap.add_argument('-d', '--debug', action='store_true', dest='dbg', help='Print results to stdout instead of graphing')
+ap.add_argument('-l', '--legend', action='store_true', default=False, dest='legend', help='Include legend in outputted graphs')
 ap.add_argument('-p', '--prefix', nargs=1, metavar='prefix', dest='prefix',
                   type=str, default=None, required=False, help='Output filename prefix')
 ap.add_argument('-f', '--file', nargs=1, metavar='file', dest='infile',
@@ -97,6 +98,8 @@ for k,v in percs[args.graph].iteritems():
     else:
       print("100% " + args.graph + ":" + k)
 
-ax.legend(legend, loc=2, bbox_to_anchor=(1, 1))
+if args.legend:
+  ax.legend(legend, loc=2, bbox_to_anchor=(1, 1))
+
 date = datetime.datetime.now().strftime("%Y_%m_%d")
 fig.savefig(outFilePref + '_' + args.graph + '_' + date + '.png', pad_inches=0.1, bbox_inches='tight')
