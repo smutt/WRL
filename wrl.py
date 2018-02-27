@@ -203,6 +203,10 @@ def test(rs, server, domain):
       dbg(">whois -h " + server + " " + domain + " NOMA\n" + rs)
       return TEST_NOMATCH
 
+    if "domain not found" in rs.lower():
+      dbg(">whois -h " + server + " " + domain + " NOMA\n" + rs)
+      return TEST_NOMATCH
+
   dbg(">whois -h " + server + " " + domain + " FAIL\n" + rs)
   return TEST_FAIL
 
