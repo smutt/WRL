@@ -63,8 +63,9 @@ for det in details:
 
   reg['domains'] = []
   for ll in soup.find_all('a'):
-    if ll['href'].count('/cgi/whois?d=') == 1:
-      reg['domains'].append(ll['href'].split('whois?d=')[1])
+    if hasattr(ll, 'href'):
+      if ll['href'].count('/cgi/whois?d=') == 1:
+        reg['domains'].append(ll['href'].split('whois?d=')[1])
   regs.append(reg)
 
 
