@@ -27,7 +27,7 @@ import re
 ap = argparse.ArgumentParser(description='Process results files into CSV')
 ap.add_argument(nargs='+', metavar='file', dest='infile', type=argparse.FileType('r'),
                   default=sys.stdin, help='Results input file if not using stdin')
-ap.add_argument('-t', '--tp', action='store_true', dest='tp', help='Total PASSes')
+ap.add_argument('-nf', '--total-nf', action='store_true', dest='nf', help='Total not FAILs')
 ap.add_argument('-bt', '--by-tld', action='store_true', dest='byTLD', help='Register PASS/FAIL by TLD instead of WHOIS server')
 ap.add_argument('-q', '--qh', action='store_true', dest='qh', help='Append queries/hour to output')
 ap.add_argument('-p', '--period', nargs=1, metavar='period', dest='period',
@@ -35,8 +35,8 @@ ap.add_argument('-p', '--period', nargs=1, metavar='period', dest='period',
 args = ap.parse_args()
 
 
-if args.tp:
-  tp = {}
+if args.nf:
+  nf = {}
 ts = {}
 servers = {}
 servers['header'] = ['tld_server', '0-pass', '0-fail', '0-noma',
@@ -59,11 +59,11 @@ for f in args.infile:
         else:
           tld_server = toks[2]
 
-        if args.tp:
-          if tld_server not in tp:
-            tp[tld_server] = 0
-          if toks[1] == 'PASS':
-            tp[tld_server] += 1
+        if args.nf:
+          if tld_server not in nf:
+            nf[tld_server] = 0
+          if toks[1].find('FAIL') == -1:
+            nf[tld_server] += 1
 
         if tld_server not in servers:
           servers[tld_server] = []
@@ -93,8 +93,8 @@ for h in servers['header']:
 if args.qh:
   for ii in range((len(servers['header']) - 1) / 3):
     rv += str(ii) + '-q/h,'
-if args.tp:
-  rv += 'PASSes'
+if args.nf:
+  rv += 'not-fails'
 print(rv.strip(','))
 
 p = re.compile('\d+') # Regex to split timestamps
@@ -128,6 +128,6 @@ for s in servers.iteritems():
           qh = int(queries / (last - first).total_seconds() * 3600)
       rv += str(qh) + ','
 
-  if args.tp:
-    rv += str(tp[s[0]])
+  if args.nf:
+    rv += str(nf[s[0]])
   print(rv.strip(','))
