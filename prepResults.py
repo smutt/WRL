@@ -27,11 +27,15 @@ import re
 ap = argparse.ArgumentParser(description='Process results files into CSV')
 ap.add_argument(nargs='+', metavar='file', dest='infile', type=argparse.FileType('r'),
                   default=sys.stdin, help='Results input file if not using stdin')
+ap.add_argument('-t', '--tp', action='store_true', dest='tp', help='Total PASSes')
 ap.add_argument('-q', '--qh', action='store_true', dest='qh', help='Append queries/hour to output')
 ap.add_argument('-p', '--period', nargs=1, metavar='period', dest='period',
                   type=int, default=None, required=False, help='Hardset time period in hours for all test cases')
 args = ap.parse_args()
 
+
+if args.tp:
+  tp = {}
 ts = {}
 servers = {}
 servers['header'] = ['server', '0-pass', '0-fail', '0-noma',
@@ -48,7 +52,13 @@ for f in args.infile:
   for line in f.read().split('\n'):
     if len(line) > 0:
       if line.find('ActiveTestThreads') == -1:
-        toks =line.split(' ')
+        toks = line.split(' ')
+        if args.tp:
+          if toks[2] not in tp:
+            tp[toks[2]] = 0
+          if toks[1] == 'PASS':
+            tp[toks[2]] += 1
+
         if toks[2] not in servers:
           servers[toks[2]] = []
           ts[toks[2]] = []
@@ -77,6 +87,8 @@ for h in servers['header']:
 if args.qh:
   for ii in range((len(servers['header']) - 1) / 3):
     rv += str(ii) + '-q/h,'
+if args.tp:
+  rv += 'PASSes'
 print(rv.strip(','))
 
 p = re.compile('\d+') # Regex to split timestamps
@@ -109,4 +121,7 @@ for s in servers.iteritems():
           last = datetime.datetime(2017, lMonth, lDay, lHour, lMinute, lSecond, lMs)
           qh = int(queries / (last - first).total_seconds() * 3600)
       rv += str(qh) + ','
+
+  if args.tp:
+    rv += str(tp[s[0]])
   print(rv.strip(','))
