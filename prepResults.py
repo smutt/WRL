@@ -28,6 +28,7 @@ ap = argparse.ArgumentParser(description='Process results files into CSV')
 ap.add_argument(nargs='+', metavar='file', dest='infile', type=argparse.FileType('r'),
                   default=sys.stdin, help='Results input file if not using stdin')
 ap.add_argument('-t', '--tp', action='store_true', dest='tp', help='Total PASSes')
+ap.add_argument('-bt', '--by-tld', action='store_true', dest='byTLD', help='Register PASS/FAIL by TLD instead of WHOIS server')
 ap.add_argument('-q', '--qh', action='store_true', dest='qh', help='Append queries/hour to output')
 ap.add_argument('-p', '--period', nargs=1, metavar='period', dest='period',
                   type=int, default=None, required=False, help='Hardset time period in hours for all test cases')
@@ -38,7 +39,7 @@ if args.tp:
   tp = {}
 ts = {}
 servers = {}
-servers['header'] = ['server', '0-pass', '0-fail', '0-noma',
+servers['header'] = ['tld_server', '0-pass', '0-fail', '0-noma',
                        '1-pass', '1-fail', '1-noma',
                        '2-pass', '2-fail', '2-noma',
                        '3-pass', '3-fail', '3-noma',
@@ -53,33 +54,38 @@ for f in args.infile:
     if len(line) > 0:
       if line.find('ActiveTestThreads') == -1:
         toks = line.split(' ')
-        if args.tp:
-          if toks[2] not in tp:
-            tp[toks[2]] = 0
-          if toks[1] == 'PASS':
-            tp[toks[2]] += 1
+        if args.byTLD:
+          tld_server = toks[3].split('.')[1] + '_' + toks[2]
+        else:
+          tld_server = toks[2]
 
-        if toks[2] not in servers:
-          servers[toks[2]] = []
-          ts[toks[2]] = []
-          ts[toks[2]].append(None)
+        if args.tp:
+          if tld_server not in tp:
+            tp[tld_server] = 0
+          if toks[1] == 'PASS':
+            tp[tld_server] += 1
+
+        if tld_server not in servers:
+          servers[tld_server] = []
+          ts[tld_server] = []
+          ts[tld_server].append(None)
           for ii in range(len(servers['header']) - 1):
-            servers[toks[2]].append(0)
+            servers[tld_server].append(0)
             if not ii % 3:
-              ts[toks[2]].append(None)
+              ts[tld_server].append(None)
 
         case = int(toks[4].split('case-')[1].split('.')[0])
-        if not ts[toks[2]][case]:
-          ts[toks[2]][case] = toks[0]
-        if len(ts[toks[2]]) == case + 2:
-          ts[toks[2]][case+1] = toks[0]
+        if not ts[tld_server][case]:
+          ts[tld_server][case] = toks[0]
+        if len(ts[tld_server]) == case + 2:
+          ts[tld_server][case+1] = toks[0]
 
         if toks[1] == 'PASS':
-          servers[toks[2]][(case * 3) + 0] += 1
+          servers[tld_server][(case * 3) + 0] += 1
         elif toks[1] == 'NOMA':
-          servers[toks[2]][(case * 3) + 2] += 1
+          servers[tld_server][(case * 3) + 2] += 1
         else:
-          servers[toks[2]][(case * 3) + 1] += 1
+          servers[tld_server][(case * 3) + 1] += 1
 
 rv = ''
 for h in servers['header']:
