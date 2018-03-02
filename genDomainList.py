@@ -37,7 +37,6 @@ ap.add_argument('-v', '--verbose', dest='verbose', action='store_true', default=
 args = ap.parse_args()
 
 DYING = False
-numTestDomains = 100
 serverZone = '.ws.sp.am' # DNS Zone containing CNAME records pointing to whois FQDNs
 d = dns.resolver.Resolver()
 
