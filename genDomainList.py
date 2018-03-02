@@ -51,7 +51,7 @@ signal.signal(signal.SIGABRT, euthanize)
 signal.signal(signal.SIGALRM, euthanize)
 signal.signal(signal.SIGSEGV, euthanize)
 signal.signal(signal.SIGHUP, euthanize)
-  
+
 # Get WHOIS server for TLD
 try:
   resp = d.query(args.tld + serverZone, 'CNAME')
@@ -80,7 +80,7 @@ for word in ll:
   try:
     resp = d.query(word.strip() + '.' + args.tld, 'NS')
     if len(resp.rrset) >= 1:
-      found.append(word)
+      found.append(word.lower())
       if args.verbose:
         print word
   except:
